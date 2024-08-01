@@ -7,3 +7,9 @@
 [submodule "src/myareaFormGenerate/SiValidator2"]
 	path = src/myareaFormGenerate/SiValidator2
 	url = git@github.com:itoh-shun/SiValidator2
+[submodule "SiValidator2"]
+	path = SiValidator2
+	url = git@github.com:itoh-shun/SiValidator2.git
+[submodule "SpiralConnecter"]
+	path = SpiralConnecter
+	url = git@github.com:itoh-shun/SpiralConnecter.git

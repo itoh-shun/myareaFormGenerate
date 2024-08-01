@@ -21,6 +21,9 @@ class FormBuilder
 
     public function __construct($formName, $action = '', $method = 'POST')
     {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
         $this->action = htmlspecialchars($action);
         $this->method = strtoupper($method);
         $this->sessionKey = 'form_data_' . md5($formName);
