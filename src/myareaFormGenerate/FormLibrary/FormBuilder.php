@@ -149,6 +149,49 @@ class FormBuilder
         $this->csrfToken = bin2hex(random_bytes(32));
         $_SESSION['csrf_token'] = $this->csrfToken;
 
+            echo "<script>
+                function attachFileInputEvent(name, type) {
+                var fileInput = document.getElementById(name);
+                if (fileInput) {
+                    fileInput.addEventListener('change', function() {
+                        var file = this.files[0];
+                        var reader = new FileReader();
+                        reader.onloadend = function() {
+                            var base64Data = reader.result.split(',')[1];
+                            var mimeType = file.type;
+                            var filename = file.name;
+                            document.getElementById(name + '_base64').value = base64Data;
+                            document.getElementById(name + '_mime').value = mimeType;
+                            document.getElementById(name + '_name').value = filename;
+
+                            if (type === 'image') {
+                                document.getElementById(name + '_container').innerHTML = 
+                                    '<div id=\"' + name + '_thumbnail\"><img src=\"data:' + mimeType + ';base64,' + base64Data + '\" alt=\"Uploaded Image\" style=\"max-width: 100px; max-height: 100px;\" /><button type=\"button\" id=\"' + name + '_clear\">Clear</button></div>';
+                            } else {
+                                document.getElementById(name + '_container').innerHTML = 
+                                    '<div id=\"' + name + '_thumbnail\"><a href=\"data:' + mimeType + ';base64,' + base64Data + '\" download=\"' + filename + '\">' + filename + '</a><button type=\"button\" id=\"' + name + '_clear\">Clear</button></div>';
+                            }
+                            attachClearButtonEvent(name, type);
+                        }
+                        reader.readAsDataURL(file);
+                    });
+                }
+            }
+
+            function attachClearButtonEvent(name, type) {
+                var clearButton = document.getElementById(name + '_clear');
+                if (clearButton) {
+                    clearButton.addEventListener('click', function() {
+                        document.getElementById(name + '_base64').value = '';
+                        document.getElementById(name + '_mime').value = '';
+                        document.getElementById(name + '_name').value = '';
+                        document.getElementById(name + '_container').innerHTML = '<input type=\"file\" name=\"' + name + '\" id=\"' + name + '\">';
+                        attachFileInputEvent(name, type);
+                    });
+                }
+            }
+
+        </script>";
         echo "<form action=\"{$this->action}\" method=\"POST\">";
         echo "<input type=\"hidden\" name=\"csrf_token\" value=\"{$this->csrfToken}\">";
         echo "<input type=\"hidden\" name=\"_method\" value=\"{$this->method}\">";
@@ -162,7 +205,15 @@ class FormBuilder
             foreach ($this->fields as $field) {
                 $label = htmlspecialchars($field['label']);
                 $name = htmlspecialchars($field['name']);
-                $value = htmlspecialchars($values[$field['name']] ?? $field['value']);
+                
+                $value = '';
+
+                if($values[$field['name']])
+                {
+                    $value = is_array($values[$field['name']]) ? array_map('htmlspecialchars', $values[$field['name']]) : htmlspecialchars($values[$field['name']]);
+                } else {
+                    $value = is_array($field['value']) ? array_map('htmlspecialchars', $field['value']) : htmlspecialchars($field['value']);
+                }
                 $type = htmlspecialchars($field['type']);
 
                 $class = isset($errors[$name]) ? 'error' : '';
@@ -199,11 +250,53 @@ class FormBuilder
                         foreach ($field['options'] as $optionValue => $optionLabel) {
                             $optionValue = htmlspecialchars($optionValue);
                             $optionLabel = htmlspecialchars($optionLabel);
-                            $checked = $value === $optionValue ? 'checked' : '';
+                            $checked = in_array($optionValue, (array)$value) ? 'checked' : '';
                             echo "<input type=\"{$type}\" name=\"{$name}\" value=\"$optionValue\" $checked {$attributes}> $optionLabel<br>";
                         }
                         break;
 
+                    case 'file':
+                        echo "<div id=\"{$name}_container\">";
+                        if ($value) {
+                            echo "<div id=\"{$name}_thumbnail\">";
+                            echo "<a href=\"data:{$values[$name.'_mime']};base64,{$value}\" download>{$this->values[$name . '_name']}</a>";
+                            echo "<button type=\"button\" id=\"{$name}_clear\">Clear</button>";
+                            echo "</div>";
+                        } else {
+                            echo "<input type=\"file\" name=\"{$name}\" id=\"{$name}\" {$attributes}>";
+                        }
+                        echo "</div>";
+                        echo "<input type=\"hidden\" name=\"{$name}_base64\" id=\"{$name}_base64\" value=\"{$value}\">";
+                        echo "<input type=\"hidden\" name=\"{$name}_mime\" id=\"{$name}_mime\" value=\"{$values[$name.'_mime']}\">";
+                        echo "<input type=\"hidden\" name=\"{$name}_name\" id=\"{$name}_name\" value=\"{$values[$name.'_name']}\">";
+                    
+                        echo "<script>
+                            attachFileInputEvent('{$name}', 'file');
+                            attachClearButtonEvent('{$name}', 'file');
+                        </script>";
+                        break;
+
+                    case 'image':
+                        echo "<div id=\"{$name}_container\">";
+                        if ($value) {
+                            echo "<div id=\"{$name}_thumbnail\">";
+                            echo "<img src=\"data:{$values[$name.'_mime']};base64,{$value}\" alt=\"Uploaded Image\" style=\"max-width: 100px; max-height: 100px;\" />";
+                            echo "<button type=\"button\" id=\"{$name}_clear\">Clear</button>";
+                            echo "</div>";
+                        } else {
+                            echo "<input type=\"file\" name=\"{$name}\" id=\"{$name}\" {$attributes}>";
+                        }
+                        echo "</div>";
+                        echo "<input type=\"hidden\" name=\"{$name}_base64\" id=\"{$name}_base64\" value=\"{$value}\">";
+                        echo "<input type=\"hidden\" name=\"{$name}_mime\" id=\"{$name}_mime\" value=\"{$values[$name.'_mime']}\">";
+                        echo "<input type=\"hidden\" name=\"{$name}_name\" id=\"{$name}_name\" value=\"{$values[$name.'_name']}\">";
+                    
+                        echo "<script>
+                            attachFileInputEvent('{$name}', 'image');
+                            attachClearButtonEvent('{$name}', 'image');
+                        </script>";
+                        break;
+                
                     default:
                         echo "<input type=\"{$type}\" name=\"{$name}\" value=\"$value\" {$attributes}\">";
                         break;
@@ -212,11 +305,24 @@ class FormBuilder
                 if (isset($errors[$name])) {
                     echo "<span style=\"color: red;\">{$errors[$name]}</span>";
                 }
+                
+                if (isset($errors[$name . '_base64'])) {
+                    echo "<span style=\"color: red;\">{$errors[$name . '_base64']}</span>";
+                }
+                
+                if (isset($errors[$name . '_mime'])) {
+                    echo "<span style=\"color: red;\">{$errors[$name . '_mime']}</span>";
+                }
+                
+                if (isset($errors[$name . '_name'])) {
+                    echo "<span style=\"color: red;\">{$errors[$name . '_name']}</span>";
+                }
                 echo "</div>";
             }
         }
 
         echo "<button type=\"submit\" name='SPIRAL_ACTION' value='Next'>{$this->submitLabel}</button>";
+        
         echo "</form>";
 
         unset($_SESSION[$this->sessionKey . '_errors']);
@@ -229,7 +335,26 @@ class FormBuilder
             call_user_func($this->callbacks['confirmform'], [$this, 'input']);
         } else {
             foreach ($_SESSION[$this->sessionKey . '_values'] as $name => $value) {
-                echo "<p><strong>{$name}:</strong> " . htmlspecialchars(is_array($value) ? implode(', ', $value) : $value) . "</p>";
+                if (strpos($name, '_base64') !== false || strpos($name, '_mime') !== false || strpos($name, '_name') !== false) {
+                    continue;
+                }
+                if (array_key_exists($name.'_base64', $_SESSION[$this->sessionKey . '_values'])){
+                    $field = array_filter($this->fields, fn($field) => $field['name'] === $name);
+                    if( $field['type'] === 'image' ){
+                        $fileField = str_replace('_base64', '', $name);
+                        $mimeType = $this->values[$fileField . '_mime'] ?? 'image/jpeg';
+                        echo "<p><strong>{$fileField}:</strong> <img src=\"data:{$mimeType};base64,{$value}\" alt=\"Uploaded Image\" style=\"max-width: 100px; max-height: 100px;\" /></p>";
+                    }
+                    if( $field['type'] === 'file' ){
+                        $fileField = str_replace('_base64', '', $name);
+                        $mimeType = $this->values[$fileField . '_mime'] ?? 'application/octet-stream';
+                        echo "<p><strong>{$fileField}:</strong> <a href=\"data:{$mimeType};base64,{$value}\" download>{$this->values[$fileField . '_name']}</a></p>";
+                    }
+                } else if (is_array($value)) {
+                    echo "<p><strong>{$name}:</strong> " . htmlspecialchars(implode(', ', $value)) . "</p>";
+                } else {
+                    echo "<p><strong>{$name}:</strong> " . htmlspecialchars($value) . "</p>";
+                }
             }
         }
         echo '<form action="' . $this->action . '" method="POST">';
@@ -283,6 +408,15 @@ class FormBuilder
         $labels = [];
         foreach ($this->fields as $field) {
             $labels[$field['name']] = $field['label'];
+            if(array_key_exists($field['name'] . '_base64', $this->values)){
+                $labels[$field['name'] . '_base64'] = $field['label'];
+            }
+            if(array_key_exists($field['name'] . '_mime', $this->values)){
+                $labels[$field['name'] . '_mime'] = $field['label'];
+            }
+            if(array_key_exists($field['name'] . '_name', $this->values)){
+                $labels[$field['name'] . '_name'] = $field['label'];
+            }
         }
 
         $results = SiValidator2::make($this->values, $rules, $labels);
@@ -305,7 +439,18 @@ class FormBuilder
     {
         $values = [];
         foreach ($this->fields as $field) {
-            $values[$field['name']] = htmlspecialchars($_POST[$field['name']] ?? '');
+            if ($field['type'] === 'file' && isset($_POST[$field['name'] . '_base64'])) {
+                $values[$field['name']] = htmlspecialchars($_POST[$field['name'] . '_base64']);
+                $values[$field['name'] . '_base64'] = htmlspecialchars($_POST[$field['name'] . '_base64']);
+                $values[$field['name'] . '_mime'] = htmlspecialchars($_POST[$field['name'] . '_mime']);
+                $values[$field['name'] . '_name'] = htmlspecialchars($_POST[$field['name'] . '_name']);
+            } else if (isset($_POST[$field['name']])) {
+                $values[$field['name']] = is_array($_POST[$field['name']])
+                    ? array_map('htmlspecialchars', $_POST[$field['name']])
+                    : htmlspecialchars($_POST[$field['name']]);
+            } else {
+                $values[$field['name']] = '';
+            }
         }
         return $values;
     }
