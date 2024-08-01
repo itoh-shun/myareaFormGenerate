@@ -229,7 +229,7 @@ class FormBuilder
             call_user_func($this->callbacks['confirmform'], [$this, 'input']);
         } else {
             foreach ($_SESSION[$this->sessionKey . '_values'] as $name => $value) {
-                echo "<p><strong>{$name}:</strong> " . htmlspecialchars($value) . "</p>";
+                echo "<p><strong>{$name}:</strong> " . htmlspecialchars(is_array($value) ? implode(', ', $value) : $value) . "</p>";
             }
         }
         echo '<form action="' . $this->action . '" method="POST">';
