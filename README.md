@@ -2,6 +2,10 @@
 
 このジェネレーターはSPIRALのフォーム同様の機能をPHPで構築するためのライブラリです。
 
+## Zipファイルの作り方
+cd src
+zip -r ../archive.zip myareaFormGenerate/*
+
 ## 実装例
 カスタムモジュールに、src 配下の myareaFormGenerate を設置します。
 カスタムページに下記ソースコードを記述します。
