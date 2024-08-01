@@ -1,0 +1,9 @@
+[submodule "src/myareaFormGenerate/SpiralConnecter"]
+	path = src/myareaFormGenerate/SpiralConnecter
+	url = git@github.com:itoh-shun/SpiralConnecter.git
+[submodule "src/myareaFormGenerate/Collection"]
+	path = src/myareaFormGenerate/Collection
+	url = git@github.com:itoh-shun/Collection
+[submodule "src/myareaFormGenerate/SiValidator2"]
+	path = src/myareaFormGenerate/SiValidator2
+	url = git@github.com:itoh-shun/SiValidator2
