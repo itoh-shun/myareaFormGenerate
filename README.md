@@ -3,7 +3,9 @@
 このジェネレーターはSPIRALのフォーム同様の機能をPHPで構築するためのライブラリです。
 
 ## Zipファイルの作り方
+
 cd src
+
 zip -r ../archive.zip myareaFormGenerate/*
 
 ## 実装例
@@ -36,9 +38,10 @@ $form->addField('text', 'username', 'ユーザー名')
          'password' => ['required','min:6'],
          'email' => ['required','email'],
          'bio' => ['max:500'],
-         'gender' => ['required'],
+         'gender' => ['required','in:male,female,other'],
          'subscribe' => ['required']
      ])
+     ->useDesignType('bootstrap5')
      ->requireConfirmation(false)
      ->setSubmitLabel('登録')
      ->on('register', function ($values) {

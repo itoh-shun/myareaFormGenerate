@@ -75,4 +75,8 @@ require_once 'myareaFormGenerate/SiValidator2/Rules/TimezoneRule.php';
 require_once 'myareaFormGenerate/SiValidator2/Rules/InRule.php';
 require_once 'myareaFormGenerate/SiValidator2/SiValidateResult.php';
 require_once 'myareaFormGenerate/SiValidator2/SiValidator2.php';
+require_once 'myareaFormGenerate/FormLibrary/Renderer/Bootstrap5Renderer.php';
+require_once 'myareaFormGenerate/FormLibrary/Renderer/DefaultRenderer.php';
+require_once 'myareaFormGenerate/FormLibrary/Helper/SanitizeHelper.php';
+require_once 'myareaFormGenerate/FormLibrary/Helper/FieldRenderer.php';
 require_once 'myareaFormGenerate/FormLibrary/FormBuilder.php';
