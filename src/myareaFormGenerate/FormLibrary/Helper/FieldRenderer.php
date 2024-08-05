@@ -80,10 +80,10 @@ class FieldRenderer
         $renderer->renderConfirmationButtons($confirmBack, $confirmSubmit);
     }
 
-    public static function renderConfirmationField($field, $value, $designType, $sessionValues)
+    public static function renderConfirmationField($field, $value, $designType)
     {
         $renderer = self::getRenderer($designType);
-        $renderer->renderConfirmationField($field, $value, $sessionValues);
+        $renderer->renderConfirmationField($field, $value);
     }
 
     public static function alertMessage($message = '' , $designType){

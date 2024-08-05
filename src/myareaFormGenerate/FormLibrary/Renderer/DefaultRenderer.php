@@ -172,17 +172,10 @@ class DefaultRenderer
         }
 
         echo '<div>';
-        if (array_key_exists($name . '_base64', $sessionValues)) {
-            if ($type === 'image' && $value) {
-                $fileField = str_replace('_base64', '', $name);
-                $mimeType = SanitizeHelper::sanitize($sessionValues[$fileField . '_mime']) ?? 'image/jpeg';
-                echo '<p><img src="data:' . $mimeType . ';base64,' . $value . '" alt="Uploaded Image" style="max-width: 100px; max-height: 100px;" /></p>';
-            }
-            if ($type === 'file' && $value) {
-                $fileField = str_replace('_base64', '', $name);
-                $mimeType = SanitizeHelper::sanitize($sessionValues[$fileField . '_mime']) ?? 'application/octet-stream';
-                echo '<p><a href="data:' . $mimeType . ';base64,' . $value . '" download>' . SanitizeHelper::sanitize($sessionValues[$fileField . '_name']) . '</a></p>';
-            }
+        if ($type === 'image' && $value) {
+            echo '<p><img src="data:' . $value['mime'] . ';base64,' . $value['base64'] . '" alt="Uploaded Image" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" /></p>';
+        }else if ($type === 'file' && $value) {
+              echo '<p><a href="data:' . $value['mime'] . ';base64,' . $value['base64'] . '" download>' . SanitizeHelper::sanitize($value['name']) . '</a></p>';
         } else if (is_array($value)) {
             echo '<p>' . SanitizeHelper::sanitize(implode(', ', $value)) . '</p>';
         } else {

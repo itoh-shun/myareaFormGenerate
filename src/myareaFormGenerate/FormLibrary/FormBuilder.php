@@ -220,7 +220,7 @@ class FormBuilder
                 if (strpos($name, '_base64') !== false || strpos($name, '_mime') !== false || strpos($name, '_name') !== false) {
                     continue;
                 }
-                FieldRenderer::renderConfirmationField($field, $value, $this->designType, $_SESSION[$this->sessionKey . '_values']);
+                FieldRenderer::renderConfirmationField($field, $value, $this->designType);
             }
         }
 
@@ -315,10 +315,11 @@ class FormBuilder
         $values = [];
         foreach ($this->fields as $field) {
             if (($field['type'] === 'file' || $field['type'] === 'image') && isset($_POST[$field['name'] . '_base64'])) {
-                $values[$field['name']] = $_POST[$field['name'] . '_base64'];
-                $values[$field['name'] . '_base64'] = $_POST[$field['name'] . '_base64'];
-                $values[$field['name'] . '_mime'] = $_POST[$field['name'] . '_mime'];
-                $values[$field['name'] . '_name'] = $_POST[$field['name'] . '_name'];
+                $values[$field['name']] = [
+                    'base64' => $_POST[$field['name'] . '_base64'],
+                    'mime' => $_POST[$field['name'] . '_mime'],
+                    'name' => $_POST[$field['name'] . '_name'],
+                ];
             } else if (isset($_POST[$field['name']])) {
                 $values[$field['name']] = is_array($_POST[$field['name']])
                     ? $_POST[$field['name']]

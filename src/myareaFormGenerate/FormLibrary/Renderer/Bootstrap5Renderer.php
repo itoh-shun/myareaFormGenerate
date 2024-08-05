@@ -9,12 +9,23 @@ class Bootstrap5Renderer
         
         $value = '';
         $id = uniqid();
-
+        
         if ($values[$field['name']]) {
             $value = is_array($values[$field['name']]) ? array_map([SanitizeHelper::class, 'sanitize'], $values[$field['name']]) : SanitizeHelper::sanitize($values[$field['name']]);
         } else {
             $value = is_array($field['value']) ? array_map([SanitizeHelper::class, 'sanitize'], $field['value']) : SanitizeHelper::sanitize($field['value']);
         }
+
+        if (is_array($value) && isset($value['base64']) && isset($value['mime']) && isset($value['name'])) {
+            $base64Value = SanitizeHelper::sanitize($value['base64']);
+            $mimeTypeValue = SanitizeHelper::sanitize($value['mime']);
+            $filenameValue = SanitizeHelper::sanitize($value['name']);
+        } else {
+            $base64Value = '';
+            $mimeTypeValue = '';
+            $filenameValue = '';
+        }
+
         $type = SanitizeHelper::sanitize($field['type']);
 
         $class = isset($errors[$name]) ? 'form-field error' : 'form-field ';
@@ -60,18 +71,18 @@ class Bootstrap5Renderer
 
             case 'file':
                 echo '<div id="' . $name . '_container">';
-                if ($value) {
+                if ($base64Value) {
                     echo '<div id="' . $name . '_thumbnail">';
-                    echo '<a href="data:' . $values[$name.'_mime'] . ';base64,' . $value . '" download>' .  SanitizeHelper::sanitize($values[$name . '_name'])  . '</a>';
+                    echo '<a href="data:' . $mimeTypeValue  . ';base64,' . $base64Value . '" download>' . $filenameValue . '</a>';
                     echo '<button type="button" id="' . $name . '_clear" class="btn btn-secondary btn-sm mx-2">Clear</button>';
                     echo '</div>';
                 } else {
                     echo '<input type="file" class="form-control" name="' . $name . '" id="' . $name . '" ' . $attributes . '>';
                 }
                 echo '</div>';
-                echo '<input type="hidden" name="' . $name . '_base64" id="' . $name . '_base64" value="' .SanitizeHelper::sanitize($value) . '">';
-                echo '<input type="hidden" name="' . $name . '_mime" id="' . $name . '_mime" value="' . SanitizeHelper::sanitize($values[$name . '_mime']). '">';
-                echo '<input type="hidden" name="' . $name . '_name" id="' . $name . '_name" value="' . SanitizeHelper::sanitize($values[$name . '_name']) . '">';
+                echo '<input type="hidden" name="' . $name . '_base64" id="' . $name . '_base64" value="' .$base64Value . '">';
+                echo '<input type="hidden" name="' . $name . '_mime" id="' . $name . '_mime" value="' . $mimeTypeValue . '">';
+                echo '<input type="hidden" name="' . $name . '_name" id="' . $name . '_name" value="' . $filenameValue. '">';
             
                 echo '<script>
                     attachFileInputEvent("' . $name . '", "file");
@@ -81,18 +92,18 @@ class Bootstrap5Renderer
 
             case 'image':
                 echo '<div id="' . $name . '_container">';
-                if ($value) {
+                if ($base64Value) {
                     echo '<div id="' . $name . '_thumbnail">';
-                    echo '<img src="data:' . $values[$name.'_mime'] . ';base64,' . SanitizeHelper::sanitize($value). '" alt="Uploaded Image" style="max-width: 100px; max-height: 100px;" />';
+                    echo '<img src="data:' . $mimeTypeValue  . ';base64,' . $base64Value. '" alt="Uploaded Image" style="max-width: 100px; max-height: 100px;" />';
                     echo '<button type="button" id="' . $name . '_clear" class="btn btn-secondary btn-sm mx-2">Clear</button>';
                     echo '</div>';
                 } else {
                     echo '<input type="file" class="form-control" name="' . $name . '" id="' . $name . '" ' . $attributes . '>';
                 }
                 echo '</div>';
-                echo '<input type="hidden" name="' . $name . '_base64" id="' . $name . '_base64" value="' .SanitizeHelper::sanitize($value) . '">';
-                echo '<input type="hidden" name="' . $name . '_mime" id="' . $name . '_mime" value="' . SanitizeHelper::sanitize($values[$name . '_mime']). '">';
-                echo '<input type="hidden" name="' . $name . '_name" id="' . $name . '_name" value="' . SanitizeHelper::sanitize($values[$name . '_name']) . '">';
+                echo '<input type="hidden" name="' . $name . '_base64" id="' . $name . '_base64" value="' .$base64Value . '">';
+                echo '<input type="hidden" name="' . $name . '_mime" id="' . $name . '_mime" value="' . $mimeTypeValue . '">';
+                echo '<input type="hidden" name="' . $name . '_name" id="' . $name . '_name" value="' . $filenameValue . '">';
             
                 echo '<script>
                     attachFileInputEvent("' . $name . '", "image");
@@ -159,7 +170,7 @@ class Bootstrap5Renderer
         echo '</div>';
     }
 
-    public function renderConfirmationField($field, $value, $sessionValues)
+    public function renderConfirmationField($field, $value)
     {
         $label = SanitizeHelper::sanitize($field['label']);
         $name = SanitizeHelper::sanitize($field['name']);
@@ -172,17 +183,10 @@ class Bootstrap5Renderer
         }
 
         echo '<div class="col-sm-10">';
-        if (array_key_exists($name . '_base64', $sessionValues)) {
-            if ($type === 'image' && $value) {
-                $fileField = str_replace('_base64', '', $name);
-                $mimeType = SanitizeHelper::sanitize($sessionValues[$fileField . '_mime']) ?? 'image/jpeg';
-                echo '<p><img src="data:' . $mimeType . ';base64,' . $value . '" alt="Uploaded Image" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" /></p>';
-            }
-            if ($type === 'file' && $value) {
-                $fileField = str_replace('_base64', '', $name);
-                $mimeType = SanitizeHelper::sanitize($sessionValues[$fileField . '_mime']) ?? 'application/octet-stream';
-                echo '<p><a href="data:' . $mimeType . ';base64,' . $value . '" download>' . SanitizeHelper::sanitize($sessionValues[$fileField . '_name']) . '</a></p>';
-            }
+        if ($type === 'image' && $value && $value['base64']) {
+            echo '<p><img src="data:' . $value['mime'] . ';base64,' . $value['base64'] . '" alt="Uploaded Image" class="img-thumbnail" style="max-width: 100px; max-height: 100px;" /></p>';
+        }else if ($type === 'file' && $value && $value['base64']) {
+              echo '<p><a href="data:' . $value['mime'] . ';base64,' . $value['base64'] . '" download>' . SanitizeHelper::sanitize($value['name']) . '</a></p>';
         } else if (is_array($value)) {
             echo '<p>' . SanitizeHelper::sanitize(implode(', ', $value)) . '</p>';
         } else {
