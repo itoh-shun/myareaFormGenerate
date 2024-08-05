@@ -43,7 +43,7 @@ $form->addField('text', 'username', 'ユーザー名')
      ])
      ->useDesignType('bootstrap5')
      ->requireConfirmation(false)
-     ->setSubmitLabel('登録')
+     ->setSubmit('登録')
      ->on('register', function ($values) {
         //登録する
          SpiralDB::title('users')->create([
@@ -416,9 +416,9 @@ $form->requireConfirmation(true);
 サブミットボタンのラベルを設定します。
 
 ~~~php
-$form->setSubmitLabel('確認');
-$form->setConfirmSubmitLabel('登録');
-$form->setConfirmBackLabel('戻る');
+$form->setSubmit('確認');
+$form->setConfirmSubmit('登録');
+$form->setConfirmBack('戻る');
 ~~~
 
 ## カスタムイベントの設定
