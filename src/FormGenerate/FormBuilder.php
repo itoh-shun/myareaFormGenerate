@@ -257,7 +257,12 @@ class FormBuilder
 
         ob_start();
         FieldRenderer::renderField($field, $this->values, $this->errors, $this->designType);
-        $html = ob_get_clean();
+        $input_html = ob_get_clean();
+        
+
+        ob_start();
+        FieldRenderer::renderConfirmationField($field, $this->values, $this->errors, $this->designType);
+        $confirm_html = ob_get_clean();
 
         $inputObject = new stdClass();
         $inputObject->label = SanitizeHelper::sanitize($field['label']);
@@ -266,7 +271,8 @@ class FormBuilder
         $inputObject->message = SanitizeHelper::sanitize($isError ? $this->errors[$name] : '');
         $inputObject->value = SanitizeHelper::sanitize($this->values[$name] ?? $field['value']);
         $inputObject->attributes = array_map('SanitizeHelper::sanitize', $field['attributes']);
-        $inputObject->default_input_html = $html;
+        $inputObject->default_input_html = $input_html;
+        $inputObject->default_confirm_html = $confirm_html;
 
         return $inputObject;
     }
