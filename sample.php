@@ -2,7 +2,7 @@
 
 //<!-- SMP_DYNAMIC_PAGE DISPLAY_ERRORS=ON NAME=xxx -->
 
-require 'myareaFormGenerate/require.php';
+require 'FormGenerate/require.php';
 
 // フォームの初期化
 $form = new FormBuilder('example_form', '');
